@@ -3,10 +3,112 @@
 
 #include "pch.h"
 #include <iostream>
+#include <memory>
+#include <vector>
+#include <thread>
+#include <chrono>
+#include <future>
+#include <assert.h>
+#include <string>
+
+template <typename T>
+void draw(const T& x, std::ostream& out, size_t pos)
+{
+    out << std::string(pos, ' ') << x << std::endl;
+}
+
+class object_t {
+public:
+    template <typename T>
+    object_t(T x)
+        : m_self(std::make_shared<model<T>>(std::move(x)))
+    {}
+
+    friend void draw(const object_t& x, std::ostream& out, size_t pos)
+    {
+        x.m_self->draw_(out, pos);
+    }
+private:
+    struct concept_t {
+        virtual ~concept_t() = default;
+        virtual void draw_(std::ostream&, size_t) const = 0;
+    };
+    template<typename T>
+    struct model : concept_t {
+        model(T x) : m_data(std::move(x)) {}
+        void draw_(std::ostream& out, size_t position) const override
+        {
+            draw(m_data, out, position);
+        }
+        T m_data;
+    };
+    //shared pointer to an immutable type has value semantics.
+    //this is why passing cont & works.
+    std::shared_ptr<const concept_t> m_self;
+};
+
+
+
+using document_t = std::vector<object_t>;
+void draw(const document_t& x, std::ostream& out, size_t pos)
+{
+    out << std::string(pos, ' ') << "<document>" << std::endl;
+    for (const auto& e : x)
+    {
+        draw(e, out, pos + 2);
+    }
+    out << std::string(pos, ' ') << "</document>" << std::endl;
+}
+
+using history_t = std::vector<document_t>;
+
+void commit(history_t& x)
+{
+    assert(x.size());
+    return x.push_back(x.back());
+}
+void undo(history_t& x)
+{
+    assert(x.size());
+    return x.pop_back();
+}
+document_t& current(history_t& x)
+{
+    assert(x.size());
+    return x.back();
+}
 
 int main()
 {
-    std::cout << "Hello World!\n"; 
+    history_t h(1);
+
+    current(h).emplace_back(0);
+    current(h).emplace_back(std::string("Hello!!"));
+
+    draw(current(h), std::cout, 0);
+    std::cout << "--------------------" << std::endl;
+
+    commit(h);
+    current(h)[1] = std::string("GAMES");
+
+    auto save = std::async([doc = current(h)]() {
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        std::cout << "--------SAVE--------" << std::endl;
+        draw(doc, std::cout, 0);
+    });
+
+    current(h).emplace_back(current(h));
+    current(h)[1] = std::string("World");
+
+    draw(current(h), std::cout, 0);
+    std::cout << "--------------------" << std::endl;
+
+    undo(h);
+
+    draw(current(h), std::cout, 0);
+
+    getchar();
+
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
