@@ -2,20 +2,9 @@
 //
 
 #include "pch.h"
-#include <iostream>
-#include <memory>
-#include <vector>
-#include <thread>
-#include <chrono>
-#include <future>
-#include <assert.h>
-#include <string>
+#include "MyClass.h"
+#include "DrawHelper.h"
 
-template <typename T>
-void draw(const T& x, std::ostream& out, size_t pos)
-{
-    out << std::string(pos, ' ') << x << std::endl;
-}
 
 class object_t {
 public:
@@ -28,10 +17,17 @@ public:
     {
         x.m_self->draw_(out, pos);
     }
+
+    friend int getSomeValue(const object_t& x)
+    {
+        return x.m_self->getSomeValue_();
+    }
+
 private:
     struct concept_t {
         virtual ~concept_t() = default;
         virtual void draw_(std::ostream&, size_t) const = 0;
+        virtual int getSomeValue_() const = 0;
     };
     template<typename T>
     struct model : concept_t {
@@ -40,14 +36,17 @@ private:
         {
             draw(m_data, out, position);
         }
+
+        int getSomeValue_() const override
+        {
+            return getSomeValue(m_data);
+        }
         T m_data;
     };
     //shared pointer to an immutable type has value semantics.
     //this is why passing cont & works.
     std::shared_ptr<const concept_t> m_self;
 };
-
-
 
 using document_t = std::vector<object_t>;
 void draw(const document_t& x, std::ostream& out, size_t pos)
@@ -84,6 +83,8 @@ int main()
 
     current(h).emplace_back(0);
     current(h).emplace_back(std::string("Hello!!"));
+    current(h).emplace_back(MyClass(60));
+    current(h).emplace_back(getSomeValue(current(h)[2]));
 
     draw(current(h), std::cout, 0);
     std::cout << "--------------------" << std::endl;

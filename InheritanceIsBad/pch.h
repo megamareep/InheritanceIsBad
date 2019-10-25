@@ -10,5 +10,13 @@
 #define PCH_H
 
 // TODO: add headers that you want to pre-compile here
+#include <assert.h>
+#include <iostream>
+#include <memory>
+#include <vector>
+#include <thread>
+#include <chrono>
+#include <future>
+#include <string>
 
 #endif //PCH_H
