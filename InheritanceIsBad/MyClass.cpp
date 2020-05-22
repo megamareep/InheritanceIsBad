@@ -11,8 +11,24 @@ MyClass::~MyClass()
 {
 }
 
-int MyClass::getSomeValue() const
+int MyClass::getValue() const
 {
     return someValue;
+}
+
+int MyClass::getValue(int value) const
+{
+    return value;
+}
+
+
+MyClass2::MyClass2(int value)
+    : someValue(value)
+{
+}
+
+int MyClass2::getValue(int value) const
+{
+    return value;
 }
 

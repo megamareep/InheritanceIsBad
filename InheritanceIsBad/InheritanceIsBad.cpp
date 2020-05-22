@@ -2,51 +2,40 @@
 //
 
 #include "pch.h"
-#include "MyClass.h"
 #include "DrawHelper.h"
+#include "object_t.h"
+#include <unordered_map>
+  
 
 
-class object_t {
-public:
-    template <typename T>
-    object_t(T x)
-        : m_self(std::make_shared<model<T>>(std::move(x)))
-    {}
 
-    friend void draw(const object_t& x, std::ostream& out, size_t pos)
-    {
-        x.m_self->draw_(out, pos);
-    }
 
-    friend int getSomeValue(const object_t& x)
-    {
-        return x.m_self->getSomeValue_();
-    }
 
-private:
-    struct concept_t {
-        virtual ~concept_t() = default;
-        virtual void draw_(std::ostream&, size_t) const = 0;
-        virtual int getSomeValue_() const = 0;
-    };
-    template<typename T>
-    struct model : concept_t {
-        model(T x) : m_data(std::move(x)) {}
-        void draw_(std::ostream& out, size_t position) const override
-        {
-            draw(m_data, out, position);
-        }
 
-        int getSomeValue_() const override
-        {
-            return getSomeValue(m_data);
-        }
-        T m_data;
-    };
-    //shared pointer to an immutable type has value semantics.
-    //this is why passing cont & works.
-    std::shared_ptr<const concept_t> m_self;
-};
+//class Booster
+//{
+//public:
+//    Booster()
+//        : m_boosters()
+//    {
+//        m_boosters.emplace(std::make_pair( "D1", Derived1() ));
+//        m_boosters.emplace(std::make_pair( "D2", Derived2() ));
+//    }
+//
+//    template<typename ...T>
+//    void UseBooster(const std::string& name, T... args) const 
+//    {
+//        auto found = m_boosters.find(name);
+//        if (found != m_boosters.end())
+//        {
+//            selector::Find(found->second, std::forward<T>(args)...);
+//        }
+//    }
+//
+//private:
+//    std::unordered_map<std::string, base_t> m_boosters;
+//};
+
 
 using document_t = std::vector<object_t>;
 void draw(const document_t& x, std::ostream& out, size_t pos)
@@ -84,7 +73,12 @@ int main()
     current(h).emplace_back(0);
     current(h).emplace_back(std::string("Hello!!"));
     current(h).emplace_back(MyClass(60));
-    current(h).emplace_back(getSomeValue(current(h)[2]));
+    current(h).emplace_back(MyClass2(60));
+    current(h).emplace_back(MyClass3());
+    current(h).emplace_back(getSomeValue(current(h)[2], 6));
+    current(h).emplace_back(getSomeValue(current(h)[2], 65u));
+    current(h).emplace_back(getSomeValue(current(h)[3], 55));
+    current(h).emplace_back(getSomeValue(current(h)[4], std::vector<int>{2,2,2,2,2}));
 
     draw(current(h), std::cout, 0);
     std::cout << "--------------------" << std::endl;
@@ -108,9 +102,21 @@ int main()
 
     draw(current(h), std::cout, 0);
 
-    getchar();
 
+    //Booster boosters;
+    //boosters.UseBooster("D1", std::vector<int>{1, 2, 3});
+
+    //FindB findb;
+    //boosters.UseBooster("D2", findb);
+
+    getchar();
 }
+
+#include <unordered_map>
+#include <memory>
+
+
+
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu

@@ -19,4 +19,10 @@
 #include <future>
 #include <string>
 
+struct FindA
+{};
+
+struct FindB
+{};
+
 #endif //PCH_H
